@@ -1,0 +1,164 @@
+﻿<Window x:Class="Sentinel.Views.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="clr-namespace:Sentinel.ViewModels"
+        Title="Sentinel — Intelligent Resource Reallocator"
+        Height="780" Width="1280"
+        Background="{StaticResource BgBrush}"
+        WindowStartupLocation="CenterScreen">
+
+    <Window.DataContext>
+        <vm:MainViewModel/>
+    </Window.DataContext>
+
+    <Grid Margin="16">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="160"/>
+        </Grid.RowDefinitions>
+
+        <!-- HEADER STRIP -->
+        <Grid Grid.Row="0" Margin="0,0,0,16">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <StackPanel Grid.Column="0">
+                <TextBlock Text="SENTINEL" FontSize="22" FontWeight="Bold"
+                           Foreground="{StaticResource AccentBrush}"/>
+                <TextBlock Text="Intelligent Resource Reallocator with Safety Kernel"
+                           Foreground="{StaticResource MutedBrush}" FontSize="12"/>
+            </StackPanel>
+            <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                <TextBlock Text="Automatic actions" VerticalAlignment="Center"
+                           Margin="0,0,8,0" Foreground="{StaticResource MutedBrush}"/>
+                <CheckBox IsChecked="{Binding AutomaticActionsEnabled}" VerticalAlignment="Center"/>
+            </StackPanel>
+        </Grid>
+
+        <!-- SUMMARY CARDS -->
+        <Grid Grid.Row="1" Margin="0,0,0,16">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <Border Grid.Column="0" Background="{StaticResource PanelBrush}"
+                    CornerRadius="6" Padding="16" Margin="0,0,8,0">
+                <StackPanel>
+                    <TextBlock Text="MEMORY" Foreground="{StaticResource MutedBrush}"
+                               FontSize="11" FontWeight="Bold"/>
+                    <TextBlock Text="{Binding MemoryHeader}" FontSize="16" Margin="0,6,0,0"/>
+                    <TextBlock Text="{Binding StandbyHeader}" Foreground="{StaticResource MutedBrush}"
+                               FontSize="12" Margin="0,4,0,0" TextWrapping="Wrap"/>
+                </StackPanel>
+            </Border>
+
+            <Border Grid.Column="1" Background="{StaticResource PanelBrush}"
+                    CornerRadius="6" Padding="16" Margin="4,0,4,0">
+                <StackPanel>
+                    <TextBlock Text="PRESSURE" Foreground="{StaticResource MutedBrush}"
+                               FontSize="11" FontWeight="Bold"/>
+                    <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
+                        <TextBlock Text="{Binding PressureScore, StringFormat={}{0:F0}}"
+                                   FontSize="28" FontWeight="Bold"
+                                   Foreground="{StaticResource AccentBrush}"/>
+                        <TextBlock Text="{Binding PressureLabel}" VerticalAlignment="Bottom"
+                                   Margin="10,0,0,5" FontWeight="SemiBold"/>
+                    </StackPanel>
+                    <ProgressBar Value="{Binding PressureScore}" Maximum="100" Height="6"
+                                 Margin="0,8,0,0" Foreground="{StaticResource AccentBrush}"
+                                 Background="#22262F"/>
+                </StackPanel>
+            </Border>
+
+            <Border Grid.Column="2" Background="{StaticResource PanelBrush}"
+                    CornerRadius="6" Padding="16" Margin="8,0,0,0">
+                <StackPanel>
+                    <TextBlock Text="ACTIONS" Foreground="{StaticResource MutedBrush}"
+                               FontSize="11" FontWeight="Bold" Margin="0,0,0,8"/>
+                    <WrapPanel>
+                        <Button Content="Flush modified"   Command="{Binding FlushModifiedCommand}"/>
+                        <Button Content="Purge low-pri"    Command="{Binding PurgeLowPriorityCommand}"/>
+                        <Button Content="Trim working sets" Command="{Binding TrimWorkingSetsCommand}"/>
+                        <Button Content="Clean caches"     Command="{Binding CleanCachesCommand}"/>
+                    </WrapPanel>
+                    <WrapPanel Margin="0,6,0,0">
+                        <Button Content="Purge full standby" Command="{Binding PurgeFullCommand}"
+                                Background="{StaticResource WarnBrush}"/>
+                        <Button Content="WinSxS cleanup"   Command="{Binding WinSxSCleanupCommand}"
+                                Background="{StaticResource WarnBrush}"/>
+                    </WrapPanel>
+                </StackPanel>
+            </Border>
+        </Grid>
+
+        <!-- PROCESS TABLE -->
+        <Border Grid.Row="2" Background="{StaticResource PanelBrush}" CornerRadius="6">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+                <Grid Grid.Row="0" Margin="16,12,16,8">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Text="PROCESSES (Top 60 by working set)"
+                               Foreground="{StaticResource MutedBrush}"
+                               FontSize="11" FontWeight="Bold" VerticalAlignment="Center"/>
+                    <StackPanel Grid.Column="1" Orientation="Horizontal">
+                        <Button Content="Trim WS"  Command="{Binding TrimSelectedCommand}"/>
+                        <Button Content="Throttle 5%" Command="{Binding ThrottleSelectedCommand}"
+                                Background="{StaticResource WarnBrush}"/>
+                        <Button Content="Release"  Command="{Binding ReleaseSelectedCommand}"/>
+                    </StackPanel>
+                </Grid>
+                <DataGrid Grid.Row="1"
+                          ItemsSource="{Binding Processes}"
+                          SelectedItem="{Binding SelectedProcess}"
+                          AutoGenerateColumns="False" HeadersVisibility="Column"
+                          GridLinesVisibility="None" Background="Transparent"
+                          RowBackground="Transparent" AlternatingRowBackground="#11141A"
+                          BorderThickness="0" IsReadOnly="True"
+                          Foreground="{StaticResource TextBrush}">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="PID"      Binding="{Binding Pid}" Width="60"/>
+                        <DataGridTextColumn Header="Name"     Binding="{Binding Name}" Width="200"/>
+                        <DataGridTextColumn Header="Working Set" Width="120"
+                            Binding="{Binding WorkingSetBytes, StringFormat={}{0:N0}}"/>
+                        <DataGridTextColumn Header="Private" Width="120"
+                            Binding="{Binding PrivateBytes, StringFormat={}{0:N0}}"/>
+                        <DataGridTextColumn Header="CPU %" Width="70"
+                            Binding="{Binding CpuPercent, StringFormat={}{0:F1}}"/>
+                        <DataGridTextColumn Header="Threads" Binding="{Binding ThreadCount}" Width="60"/>
+                        <DataGridTextColumn Header="Score" Binding="{Binding ProtectionScore}" Width="60"/>
+                        <DataGridTextColumn Header="Why protected"
+                            Binding="{Binding ProtectionReason}" Width="*"/>
+                    </DataGrid.Columns>
+                </DataGrid>
+            </Grid>
+        </Border>
+
+        <!-- ACTION LOG -->
+        <Border Grid.Row="3" Background="{StaticResource PanelBrush}"
+                CornerRadius="6" Margin="0,16,0,0">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+                <TextBlock Grid.Row="0" Text="RECENT ACTIONS" Margin="16,12,16,4"
+                           Foreground="{StaticResource MutedBrush}" FontSize="11" FontWeight="Bold"/>
+                <ListBox Grid.Row="1" ItemsSource="{Binding RecentActions}"
+                         Background="Transparent" BorderThickness="0"
+                         Foreground="{StaticResource TextBrush}" Margin="8,0,8,8"
+                         ScrollViewer.VerticalScrollBarVisibility="Auto"/>
+            </Grid>
+        </Border>
+    </Grid>
+</Window>
